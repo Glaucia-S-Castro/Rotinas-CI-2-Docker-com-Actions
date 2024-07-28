@@ -10,6 +10,12 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
+    env:
+      HOST: localhost
+      PORT: 5433
+      USER: root
+      PASSWORD: root
+      DBNAME: root
     strategy:
       matrix:
         go_version: ['1.18', '1.17', '>=1.18']
@@ -29,15 +35,23 @@ jobs:
 
     - name: Test
       run: go test -v main_test.go 
-      
-  
+        
   build:
     needs: test
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: ['ubuntu-latest', 'ubuntu-20.04']
+    runs-on: ubuntu-latest
+
     steps:
     - uses: actions/checkout@v3
     - name: Build
       run: go build -v main.go
+
+    - name: Upload main compilado
+      uses: actions/upload-artifact@v3
+      with:
+        name: api-go
+        path: main
+
+  docker:
+    needs: build
+    uses: ./.github/workflows/docker.yml
+    secrets: inherit
